@@ -1,0 +1,7 @@
+services:
+  attendance-monitor:
+    build: .
+    env_file:
+      - .env
+    init: true
+    restart: "no"
