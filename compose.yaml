@@ -1,7 +1,20 @@
 services:
   attendance-monitor:
     build: .
+    container_name: attendance-monitor
     env_file:
       - .env
-    init: true
-    restart: "no"
+    volumes:
+      - ./data:/data
+
+  holiday-bot:
+    build: .
+    container_name: holiday-bot
+    restart: unless-stopped
+    command: python holiday_bot.py
+    env_file:
+      - .env
+    environment:
+      HOLIDAYS_FILE: /data/holidays.json
+    volumes:
+      - ./data:/data

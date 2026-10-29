@@ -2,6 +2,8 @@
 import os
 import re
 import sys
+import json
+from pathlib import Path
 import logging
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -59,6 +61,19 @@ logging.basicConfig(
 )
 log = logging.getLogger("attendance-monitor")
 
+HOLIDAYS_FILE = Path(
+    os.getenv("HOLIDAYS_FILE", "/data/holidays.json")
+)
+
+
+def is_holiday(target_date):
+    if not HOLIDAYS_FILE.exists():
+        return False
+
+    with HOLIDAYS_FILE.open("r", encoding="utf-8") as file:
+        holidays = json.load(file)
+
+    return target_date.isoformat() in holidays
 
 def normalize_name(name):
     """Ignore capitalization and repeated whitespace."""
@@ -509,6 +524,14 @@ def main():
 
     checked_at = datetime.now(TZ)
     target_date = checked_at.date()
+
+    if is_holiday(target_date):
+        log.info(
+            "Today (%s) is a saved holiday. "
+            "Skipping attendance check and Telegram report.",
+            target_date,
+        )
+        return
 
     log.info("Checking attendance for %s", target_date)
 
